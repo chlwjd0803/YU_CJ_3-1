@@ -2,7 +2,7 @@ public abstract class AbstractSort {
     public static void sort(Comparable[] a) { };
 
     protected static boolean less(Comparable v, Comparable w) //임의수정
-    { return v.compareTo(w) <= 0; }
+    { return v.compareTo(w) < 0; }
 
     protected static void exch(Comparable[] a, int i, int j)
     { Comparable t = a[i]; a[i] = a[j];a[j] = t; }
