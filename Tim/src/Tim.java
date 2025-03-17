@@ -14,7 +14,7 @@ public class Tim extends AbstractSort {
             int run_len = 0; // 의미없는 초기값
             run[0] = a[index++];
             run[1] = a[index++];
-            for(int i = 2; i < a.length && index < a.length; i++){ // 여기서 i가 run의 인덱스
+            for(int i = 2; i < a.length && index < a.length; i++, run_len = i){ // 여기서 i가 run의 인덱스, run_len을 지속적으로 최신화
                 if(less(run[0],run[1])){
                     if(less(a[index-1], a[index])) run[i] = a[index++];
                     else if(i-1 < minrun){ //minrun의 기준보다 작은지
@@ -22,7 +22,6 @@ public class Tim extends AbstractSort {
                         Insertion.sort(run, i);
                     }
                     else{
-                        run_len = i;
                         break;
                     }
                 }
@@ -33,16 +32,14 @@ public class Tim extends AbstractSort {
                         Insertion.sort_reverse(run, i); //다만 내림차순 기준
                     }
                     else{
-                        run_len = i;
-                        for(int j=0; j<run_len/2; j++) exch(run, j, run_len-j-1);
-                        Tim.show(run);
                         break;
                     }
                 }
+                if(run_len == 0) run_len = i;
             }
+            if(less(run[1],run[0])) for(int j=0; j<run_len/2; j++) exch(run, j, run_len-j-1);
             Comparable[] temp = new Comparable[run_len];
             for(int i = 0; i < run_len; i++) temp[i] = run[i];
-            Tim.show(temp);
             stack.push(temp);
             boolean flag = true;
 
@@ -66,7 +63,7 @@ public class Tim extends AbstractSort {
                 if(stack.size() >= 2){
                     Comparable[] A = stack.pop();
                     Comparable[] B = stack.pop();
-                    if(!(B.length > A.length)){
+                    if(!(B.length > A.length) || index == a.length){
                         stack.push(Merge.sort(A, B));
                         flag = true; // 병합이 일어난 경우 다시 작업해야하므로
                     }
@@ -77,7 +74,7 @@ public class Tim extends AbstractSort {
                 }
             }
         }
-        Comparable[] sorted = stack.pop();
+        Comparable[] sorted = stack.pop(); //원소가 하나만 남아야함
         for(int i = 0; i < sorted.length; i++) a[i] = sorted[i];
     }
 
@@ -86,8 +83,9 @@ public class Tim extends AbstractSort {
         minrun = 4;
         index = 0;
         stack = new Stack<>();
+        Tim.show(a); // 정렬 전
         Tim.sort(a);
-        Tim.show(a);
+        Tim.show(a); // 정렬 후
     }
 
 }
