@@ -25,26 +25,36 @@ abstract class AbstractSort {
 
 
 class Heap extends AbstractSort{
-
     protected static void exch(Distance[] a, int i, int j)
     { Distance t = a[i]; a[i] = a[j];a[j] = t; }
 
-    public static void adjust(Distance[] d, int parent){
-        int lch = 2*parent;
-        int rch = lch+1;
-        if(rch >= d.length);
+    public static void adjust(Distance[] d, int parent, int n){
+        int child = 2*parent;
 
-        if(less(d[lch].dist, d[parent].dist)) exch(d, lch, parent);
-        if(rch >= d.length) return;
-        if(less(d[rch].dist, d[parent].dist)) exch(d, rch, parent);
-        
+        // 둘중에 작은걸 찾고 그거를 부모와 비교
+        // 두 자식인가 한 자식인가로 일단 출발?
+        // 일단 두 자식이며 왼쪽보다 오른쪽이 작다면
 
+        while(child < n){
+            // 두 자식중 더 작은값을 가르키게 함, 오른쪽 자식이 존재하는지 까지 검사 (배열 오류 고려)
+            if(child < n && less(d[child+1].dist, d[child].dist)) child++;
+            // 자식이 작다면 부모와 교환
+            if(less(d[child].dist, d[parent].dist)) exch(d,parent,child);
+            else break;
+        }
     }
 
     public static void sort(Distance[] d, int k, int n){
-//        Distance temp;
+        // 초기 min heap 생성
+        for(int i=n/2; i>0; i--) adjust(d, i, n);
 
-        for(int i=n/2; i>0; i--) adjust(d, i);
+        // 작업 시작
+        int count = 0;
+        for(int i=n-1; i>0; i--){
+            exch(d, 1, n+1);
+            if(count++ == k) break; //k만큼만 정렬하므로
+            adjust(d, 1, i); // 루트가 바뀌었으므로 얘 기준으로만 하면 된다
+        }
     }
 }
 
@@ -58,8 +68,6 @@ class Distance{
         this.y = y;
         this.dist = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     }
-
-//    public toString(){};
 }
 
 
@@ -79,8 +87,15 @@ public class HW1 {
             Distance[] d = new Distance[n+1];
             for(int i=1; i<=n; i++)
                 d[i] = new Distance(x - sc.nextDouble(), y - sc.nextDouble());
+
+            long start = System.currentTimeMillis();
+            Heap.sort(d, k, n);
+            long end = System.currentTimeMillis();
+            System.out.println("실행 시간 (밀리초): " + (end-start));
         } catch (IOException e) { System.out.println(e); return; }
         if (sc != null) sc.close();
+
+
 
 
     }
