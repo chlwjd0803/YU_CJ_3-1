@@ -88,7 +88,7 @@ public class HW1 {
                 d1[i] = new Distance(x, y, ins_x, ins_y);
                 d2[i] = new Distance(x, y, ins_x, ins_y);
             }
-
+            if(k==-1) k=n;
             System.out.println("데이터 입력 완료\n\n\n");
             System.out.println("기본적인 정렬 시작");
             long start = System.currentTimeMillis();
