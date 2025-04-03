@@ -1,3 +1,4 @@
+// 22112155 최정
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
@@ -23,7 +24,6 @@ abstract class AbstractSort {
     }
 }
 
-
 class Heap extends AbstractSort{
     protected static void exch(Distance[] a, int i, int j)
     { Distance t = a[i]; a[i] = a[j];a[j] = t; }
@@ -31,29 +31,25 @@ class Heap extends AbstractSort{
     public static void adjust(Distance[] d, int parent, int n){
         int child = 2*parent;
 
-        // 둘중에 작은걸 찾고 그거를 부모와 비교
-        // 두 자식인가 한 자식인가로 일단 출발?
-        // 일단 두 자식이며 왼쪽보다 오른쪽이 작다면
-
-        while(child < n){
-            // 두 자식중 더 작은값을 가르키게 함, 오른쪽 자식이 존재하는지 까지 검사 (배열 오류 고려)
+        while(child <= n){
             if(child < n && less(d[child+1].dist, d[child].dist)) child++;
-            // 자식이 작다면 부모와 교환
-            if(less(d[child].dist, d[parent].dist)) exch(d,parent,child);
+            if(less(d[child].dist, d[parent].dist)){
+                exch(d,parent,child);
+                parent = child;
+                child *= 2;
+            }
             else break;
         }
     }
 
-    public static void sort(Distance[] d, int k, int n){
-        // 초기 min heap 생성
+    public static void sort(Distance[] d, int k, int n, boolean enhanced){
         for(int i=n/2; i>0; i--) adjust(d, i, n);
 
-        // 작업 시작
         int count = 0;
         for(int i=n-1; i>0; i--){
-            exch(d, 1, n+1);
-            if(count++ == k) break; //k만큼만 정렬하므로
-            adjust(d, 1, i); // 루트가 바뀌었으므로 얘 기준으로만 하면 된다
+            exch(d, 1, i+1);
+            if(count++ == k && enhanced) break;
+            adjust(d, 1, i);
         }
     }
 }
@@ -63,13 +59,12 @@ class Distance{
     public double y;
     public double dist;
 
-    public Distance(double x, double y){
-        this.x = x;
-        this.y = y;
-        this.dist = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+    public Distance(double cur_x, double cur_y, double ins_x, double ins_y){
+        this.x = ins_x;
+        this.y = ins_y;
+        this.dist = Math.sqrt(Math.pow(cur_x-ins_x, 2) + Math.pow(cur_y-ins_y, 2));
     }
 }
-
 
 public class HW1 {
     public static void main(String[] args){
@@ -83,20 +78,35 @@ public class HW1 {
             double y = sc.nextDouble();
             int k = sc.nextInt();
             int n = sc.nextInt();
+            Distance[] d1 = new Distance[n+1];
+            Distance[] d2 = new Distance[n+1];
+            double ins_x, ins_y;
+            System.out.println("데이터 입력 중");
+            for(int i=1; i<=n; i++){
+                ins_x = sc.nextDouble();
+                ins_y = sc.nextDouble();
+                d1[i] = new Distance(x, y, ins_x, ins_y);
+                d2[i] = new Distance(x, y, ins_x, ins_y);
+            }
 
-            Distance[] d = new Distance[n+1];
-            for(int i=1; i<=n; i++)
-                d[i] = new Distance(x - sc.nextDouble(), y - sc.nextDouble());
-
+            System.out.println("데이터 입력 완료\n\n\n");
+            System.out.println("기본적인 정렬 시작");
             long start = System.currentTimeMillis();
-            Heap.sort(d, k, n);
+            Heap.sort(d1, k, n, false);
             long end = System.currentTimeMillis();
-            System.out.println("실행 시간 (밀리초): " + (end-start));
+            System.out.println("k="+ k + " 일때 " + "실행 시간 (밀리초): " + (end-start) + "ms");
+            for(int i=n; i>n-k; i--) System.out.println(n-i + ": (" + d1[i].x + ", " + d1[i].y + ") 거리 = " + d1[i].dist);
+            System.out.println("\n\n\n-----------------------------------------------------\n\n\n");
+
+            System.out.println("개선된 정렬 시작");
+            start = System.currentTimeMillis();
+            Heap.sort(d2, k, n, true);
+            end = System.currentTimeMillis();
+            System.out.println("k="+ k + " 일때 " + "실행 시간 (밀리초): " + (end-start) + "ms");
+            for(int i=n; i>n-k; i--) System.out.println(n-i + ": (" + d2[i].x + ", " + d2[i].y + ") 거리 = " + d2[i].dist);
+            System.out.println("\n종료합니다.");
+
         } catch (IOException e) { System.out.println(e); return; }
         if (sc != null) sc.close();
-
-
-
-
     }
 }
