@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
@@ -20,7 +21,7 @@ class Node<K,V> {
     }
 }
 
-class BST<K extends Comparable<K>,V> {
+class BST<K extends Comparable<K>,V extends Comparable<V>> {
     protected Node<K,V> root;
 
     public void put(K key, V val) {
@@ -30,7 +31,12 @@ class BST<K extends Comparable<K>,V> {
         }
         Node<K,V> node = treeSearch(key);
         int cmp = key.compareTo(node.key);
-        if(cmp == 0) node.val = val;
+
+        // 만약 입력된 값이 크다면 변경을 하라는 뜻 (합집합의 원리를 적용하기 위함, 일반 입력때는 어짜피 영향이 없음 왜냐 1이 들어오니까 무조건)
+        if(cmp == 0){
+            if(node.val.compareTo(val) < 0)
+                node.val = val;
+        }
         else{
             var newNode = new Node<K,V>(key, val);
             if(cmp < 0) node.left = newNode;
@@ -73,6 +79,25 @@ class BST<K extends Comparable<K>,V> {
         resetSize(node.parent, 1);
     }
 
+    public int size(){ return (root != null) ? root.N : 0; }
+
+    public Iterable<K> keys() {
+        if (root == null) return null;
+        ArrayList<K> keyList = new ArrayList<K>(size());
+        inorder(root, keyList);
+        return keyList;
+    }
+
+    private void inorder(Node<K,V> x, ArrayList<K> keyList) {
+        if (x != null) {
+            inorder(x.left, keyList);
+            keyList.add(x.key);
+            inorder(x.right, keyList);
+        }
+    }
+
+    // 마지막에 순회하면서 교집합과 합집합을 구하기 위함
+
 }
 
 public class Main {
@@ -108,7 +133,7 @@ public class Main {
                     buffer[4] = st.nextToken();
                     shingle = "";
                     for(int i=0; i<5; i++){
-                        shingle += buffer[i];
+                        shingle += buffer[i] + " ";
                         buffer[i] = buffer[i+1];
                     }
                     shingle += buffer[4];
