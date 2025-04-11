@@ -1,3 +1,4 @@
+// 22112155 최정
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ class Node<K,V> {
     }
 }
 
-class BST<K extends Comparable<K>,V extends Comparable<V>> {
+class BST<K extends Comparable<K>,V> {
     protected Node<K,V> root;
 
     public void put(K key, V val) {
@@ -31,11 +32,8 @@ class BST<K extends Comparable<K>,V extends Comparable<V>> {
         }
         Node<K,V> node = treeSearch(key);
         int cmp = key.compareTo(node.key);
-
-        // 만약 입력된 값이 크다면 변경을 하라는 뜻 (합집합의 원리를 적용하기 위함, 일반 입력때는 어짜피 영향이 없음 왜냐 1이 들어오니까 무조건)
         if(cmp == 0){
-            if(node.val.compareTo(val) < 0)
-                node.val = val;
+            node.val = val;
         }
         else{
             var newNode = new Node<K,V>(key, val);
@@ -49,23 +47,23 @@ class BST<K extends Comparable<K>,V extends Comparable<V>> {
     public V get(K key) {
         if (root == null) return null;
         Node<K,V> x = treeSearch(key);
-        if (key.equals(x.key)) // 검색 키를 가진 노드가 반환된 경우
+        if (key.equals(x.key))
             return x.val;
-        else // 검색 키를 가진 노드가 없는 경우
+        else
             return null;
     }
 
     protected Node<K,V> treeSearch(K key) {
-        Node<K,V> node = root; // BST에 대한 모든 연산은 루트부터 시작
+        Node<K,V> node = root;
         while (true) {
             int cmp = key.compareTo(node.key);
-            if (cmp == 0) return node; // 찾았으면, 순회 종료
-            else if (cmp < 0) { // x.key보다 작을 경우, 왼쪽으로
-                if (node.left == null) return node; // 없으면, 순회 종료
+            if (cmp == 0) return node;
+            else if (cmp < 0) {
+                if (node.left == null) return node;
                 else node = node.left;
             }
-            else { // x.key보다 클 경우, 오른쪽으로
-                if (node.right == null) return node; // 없으면, 순회 종료
+            else {
+                if (node.right == null) return node;
                 else node = node.right;
             }
         }
@@ -95,33 +93,30 @@ class BST<K extends Comparable<K>,V extends Comparable<V>> {
             inorder(x.right, keyList);
         }
     }
-
-    // 마지막에 순회하면서 교집합과 합집합을 구하기 위함
-
 }
 
-public class Main {
+public class HW2 {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         Scanner fsc;
 
-        BST<String,Integer> fBst = new BST<>();
-        BST<String,Integer> sBst = new BST<>();
+        BST<String,Integer> A = new BST<>();
+        BST<String,Integer> B = new BST<>();
 
         String shingle;
 
         System.out.print("첫번째 파일이름 : ");
-        String fName = sc.nextLine();
+        String aName = sc.next();
         System.out.print("두번째 파일이름 : ");
-        String SName = sc.nextLine();
+        String bName = sc.next();
 
         try{
-            fsc = new Scanner(new File(fName));
+            fsc = new Scanner(new File(aName));
             String content = "";
             while(fsc.hasNextLine()){
                 content += fsc.nextLine() + "\n";
             }
-            StringTokenizer st = new StringTokenizer(content);
+            StringTokenizer st = new StringTokenizer(content, " \t\n=;,<>()");
 
             int count = 0;
             String [] buffer = new String[5];
@@ -132,23 +127,23 @@ public class Main {
                 else{
                     buffer[4] = st.nextToken();
                     shingle = "";
-                    for(int i=0; i<5; i++){
+                    for(int i=0; i<4; i++){
                         shingle += buffer[i] + " ";
                         buffer[i] = buffer[i+1];
                     }
                     shingle += buffer[4];
-                    if(fBst.get(shingle) == null) fBst.put(shingle, 1);
-                    else fBst.put(shingle, fBst.get(shingle) + 1);
+                    if(A.get(shingle) == null) A.put(shingle, 1);
+                    else A.put(shingle, A.get(shingle) + 1);
                 }
-
             }
+            System.out.println("파일 " + aName + "의 Shingle의 수 : " + A.size());
 
-            fsc = new Scanner(new File(SName));
+            fsc = new Scanner(new File(bName));
             content = "";
             while(fsc.hasNextLine()){
                 content += fsc.nextLine() + "\n";
             }
-            st = new StringTokenizer(content);
+            st = new StringTokenizer(content, " \t\n=;,<>()");
 
             count = 0;
             while(st.hasMoreTokens()){
@@ -159,20 +154,42 @@ public class Main {
                     buffer[4] = st.nextToken();
                     shingle = "";
                     for(int i=0; i<4; i++){
-                        shingle += buffer[i];
+                        shingle += buffer[i] + " ";
                         buffer[i] = buffer[i+1];
                     }
                     shingle += buffer[4];
-                    if(sBst.get(shingle) == null) sBst.put(shingle, 1);
-                    else sBst.put(shingle, sBst.get(shingle) + 1);
+                    if(B.get(shingle) == null) B.put(shingle, 1);
+                    else B.put(shingle, B.get(shingle) + 1);
                 }
             }
+            System.out.println("파일 " + bName + "의 Shingle의 수 : " + B.size());
+
+            Iterable<String> bKeys = B.keys();
+            int unionSum = 0;
+            int intersectionSum = 0;
+            int intersectionCount = 0;
+
+            for(String bKey : bKeys){
+                if(A.get(bKey) != null){
+                    intersectionCount++;
+                    if(A.get(bKey) < B.get(bKey)) {
+                        intersectionSum += A.get(bKey);
+                        A.put(bKey, B.get(bKey));
+                    }
+                    else
+                        intersectionSum += B.get(bKey);
+                }
+                else
+                    A.put(bKey, B.get(bKey));
+            }
+            Iterable<String> unionKeys = A.keys();
+            for(String unionKey : unionKeys){ unionSum += A.get(unionKey); }
+            double similarity = (double) intersectionSum / unionSum;
+
+            System.out.println("두 파일에서 공통된 Shingle의 수 : " + intersectionCount);
+            System.out.println(aName + "과 " + bName + "의 유사도 : " + similarity);
 
         } catch (IOException e) { System.out.println(e); return; }
         if (sc != null) sc.close();
-
-
-
-        StringTokenizer st = new StringTokenizer(args[0], " \t\n=;,<>()");
     }
 }
