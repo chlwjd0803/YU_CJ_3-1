@@ -9,10 +9,15 @@ public class Main {
         int totalLen = 0;
         char[] buf = new char[(l1>l2) ? l1+1 : l2+1];
 
-        for(int i=0; i<=l1; i++){
+
+        for (int i = 0; i <= l1; i++) {
             lcs[i][0] = 0;
-            lcs[0][i] = 0;
         }
+
+        for (int j = 0; j <= l2; j++) {
+            lcs[0][j] = 0;
+        }
+
 
         for(int i=1; i<=l1; i++) for(int j=1; j<=l2; j++){
             if(s1.charAt(i-1) == s2.charAt(j-1)){
@@ -37,6 +42,6 @@ public class Main {
         String s2 = scanner.nextLine();
 
         String answer = solution(s1, s2);
-        System.out.println(answer + "\n" + answer.length());
+        System.out.print(answer + "\n" + answer.length());
     }
 }
