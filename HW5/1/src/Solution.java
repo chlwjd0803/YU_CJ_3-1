@@ -1,19 +1,18 @@
+// 22112155 최정
 import java.util.Scanner;
 
 public class Solution {
 
-    public String solution(String number, int k){
+    public String solution(String number, int endIndex){
         StringBuilder answer = new StringBuilder();
-        int maxIndex; // 임시로..
+        int maxIndex;
         int startIndex = 0;
-        int endIndex = k;
 
         while(endIndex < number.length()){
             maxIndex = startIndex;
             for(int i=startIndex+1; i<=endIndex; i++){
                 if(number.charAt(i) > number.charAt(maxIndex))
                     maxIndex = i;
-
             }
             answer.append(number.charAt(maxIndex));
             endIndex++;
