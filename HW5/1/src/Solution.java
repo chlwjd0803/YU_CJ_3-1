@@ -2,7 +2,6 @@
 import java.util.Scanner;
 
 public class Solution {
-
     public String solution(String number, int endIndex){
         StringBuilder answer = new StringBuilder();
         int maxIndex;
@@ -21,14 +20,4 @@ public class Solution {
 
         return answer.toString();
     }
-
-
-    public static void main(String[] args) {
-        Solution solution = new Solution();
-        Scanner sc = new Scanner(System.in);
-        String number = sc.nextLine();
-        int k = sc.nextInt();
-        System.out.println(solution.solution(number, k));
-    }
-
 }
