@@ -1,6 +1,9 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
-public class Optimal {
+public class LRU {
     private static final double MEMORY_ACCESS = 0.0002;
     private static final double PAGE_FAULT_OVERHEAD = 8;
 
@@ -12,7 +15,7 @@ public class Optimal {
         int pageFault = 0;
         int farIndex;
 
-        System.out.println("===============Optimal 알고리즘 결과===============");
+        System.out.println("===============LRU 알고리즘 결과===============");
 
         for(int i=0; i<refStr.length; i++){
             if(exist.contains(refStr[i])){
@@ -21,19 +24,14 @@ public class Optimal {
             }
             if(curCapacity >= frameCapacity){ // 없는데 용량이 가득찼을경우
                 far.clear(); // 거리 초기화
-                for(int j=i+1; j<refStr.length; j++)
+                for(int j=i-1; j>=0; j--)
                     if(exist.contains(refStr[j]) && far.get(refStr[j]) == null)
-                        far.put(refStr[j], j-i); //거리를 저장
+                        far.put(refStr[j], i-j); //거리를 저장
 
                 farIndex = 0; // 일단 0번째로 초기화
-                for(int j=0; j<frame.size(); j++){
-                    if(far.get(frame.get(j)) == null){ // 대상이 이후에 계속 존재하지 않으면 그냥 지움
-                        farIndex = j;
-                        break;
-                    }
+                for(int j=0; j<frame.size(); j++)
                     if(far.get(frame.get(j)) > far.get(frame.get(farIndex)))
                         farIndex = j; // 가장 먼 거리를 가진 index 찾아 넣기
-                }
 
                 exist.remove(frame.remove(farIndex)); // 삭제
                 curCapacity--; // 용량 감소

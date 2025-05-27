@@ -12,13 +12,15 @@ public class Main {
         int scope = sc.nextInt(); // 나올 페이지 번호의 범위
 
         int [] refStr = new int[refStrLen]; // 페이지번호 배열 선언만
+
         for(int i=0; i<refStrLen; i++)
             refStr[i] = (int)(Math.random() * scope) + 1;
-        System.out.println("불러올 페이지들 : " + Arrays.toString(refStr));
+
+//        System.out.println("불러올 페이지들 : " + Arrays.toString(refStr));
 
         FIFO.algorithm(frameCapacity, refStr);
         Optimal.algorithm(frameCapacity, refStr);
-
+        LRU.algorithm(frameCapacity, refStr);
 
         sc.close();
     }
