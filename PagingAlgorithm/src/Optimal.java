@@ -4,7 +4,7 @@ public class Optimal {
     private static final double MEMORY_ACCESS = 0.0002;
     private static final double PAGE_FAULT_OVERHEAD = 8;
 
-    public static void algorithm(int frameCapacity, int[] refStr){
+    public static PageFaultResult algorithm(int frameCapacity, int[] refStr){
         List<Integer> frame = new ArrayList<>(); // FIFO는 Queue의 성질
         HashSet<Integer> exist = new HashSet<>(); // 페이지 존재 여부를 알기 위해 할당
         HashMap<Integer, Integer> far = new HashMap<>();
@@ -48,9 +48,11 @@ public class Optimal {
         double pageFaultRate = (double)pageFault/refStr.length;
         double eat = (double)(1-pageFaultRate)*MEMORY_ACCESS + pageFaultRate*PAGE_FAULT_OVERHEAD;
 
-        System.out.println("Page Fault 발생 횟수 : " + pageFault);
-        System.out.println("Page Fault Rate : " + pageFaultRate);
-        System.out.println("EAT : " + eat);
+//        System.out.println("Page Fault 발생 횟수 : " + pageFault);
+//        System.out.println("Page Fault Rate : " + pageFaultRate);
+//        System.out.println("EAT : " + eat);
+
+        return new PageFaultResult(pageFault, pageFaultRate, eat);
 
     }
 }
