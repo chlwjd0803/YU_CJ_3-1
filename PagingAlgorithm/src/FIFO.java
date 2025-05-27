@@ -15,7 +15,7 @@ public class FIFO {
 
 //        System.out.println("불러올 페이지들 : " + Arrays.toString(refStr));
 
-        System.out.println("===============FIFO 알고리즘 결과===============");
+//        System.out.println("===============FIFO 알고리즘 결과===============");
 
         for(int i=0; i<refStr.length; i++){
             if(exist.contains(refStr[i])){

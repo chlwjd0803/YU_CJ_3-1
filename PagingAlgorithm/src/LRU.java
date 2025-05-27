@@ -15,7 +15,7 @@ public class LRU {
         int pageFault = 0;
         int farIndex;
 
-        System.out.println("===============LRU 알고리즘 결과===============");
+//        System.out.println("===============LRU 알고리즘 결과===============");
 
         for(int i=0; i<refStr.length; i++){
             if(exist.contains(refStr[i])){
