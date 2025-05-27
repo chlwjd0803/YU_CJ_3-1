@@ -1,13 +1,14 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.*;
 import java.util.Random;
 
 public class PageReplacementUI extends JFrame {
     private JTextField tfCapacity, tfLength, tfRange;
     private JSpinner spRuns;
     private JButton btnRun;
-    private JTextArea taResults;
+    private JTable table;
+    private DefaultTableModel tableModel;
 
     public PageReplacementUI() {
         super("Page Replacement Simulator");
@@ -16,26 +17,32 @@ public class PageReplacementUI extends JFrame {
 
         // Input panel
         JPanel inputPanel = new JPanel(new GridLayout(4, 2, 5, 5));
-        inputPanel.setBorder(BorderFactory.createTitledBorder("Simulation Parameters"));
-        inputPanel.add(new JLabel("Frame Capacity:"));
+        inputPanel.setBorder(BorderFactory.createTitledBorder("시뮬레이션 파라미터"));
+        inputPanel.add(new JLabel("프레임 크기:"));
         tfCapacity = new JTextField("2");
         inputPanel.add(tfCapacity);
-        inputPanel.add(new JLabel("Reference String Length:"));
+        inputPanel.add(new JLabel("Reference String 길이:"));
         tfLength = new JTextField("100");
         inputPanel.add(tfLength);
-        inputPanel.add(new JLabel("Page Range (1~n):"));
+        inputPanel.add(new JLabel("페이지 범위 (1~n):"));
         tfRange = new JTextField("10");
         inputPanel.add(tfRange);
-        inputPanel.add(new JLabel("Number of Runs:"));
+        inputPanel.add(new JLabel("시도 횟수:"));
         spRuns = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
         inputPanel.add(spRuns);
         add(inputPanel, BorderLayout.NORTH);
 
-        // Results area
-        taResults = new JTextArea(15, 50);
-        taResults.setEditable(false);
-        taResults.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        add(new JScrollPane(taResults), BorderLayout.CENTER);
+        // Table for results
+        String[] columns = {"시도", "알고리즘", "Page Fault", "Fault Rate (%)", "EAT (ms)"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        table = new JTable(tableModel);
+        table.setAutoCreateRowSorter(true);
+        add(new JScrollPane(table), BorderLayout.CENTER);
 
         // Run button
         btnRun = new JButton("Run Simulation");
@@ -50,7 +57,8 @@ public class PageReplacementUI extends JFrame {
     }
 
     private void runSimulation() {
-        taResults.setText("");
+        // clear previous results
+        tableModel.setRowCount(0);
         int capacity = Integer.parseInt(tfCapacity.getText());
         int length = Integer.parseInt(tfLength.getText());
         int range = Integer.parseInt(tfRange.getText());
@@ -58,18 +66,18 @@ public class PageReplacementUI extends JFrame {
 
         for (int i = 1; i <= runs; i++) {
             int[] refStr = generateRandomSequence(length, range);
-            // Call refactored algorithm classes
+            // Execute algorithms and get results
             PageFaultResult fifo = FIFO.algorithm(capacity, refStr);
             PageFaultResult lru  = LRU.algorithm(capacity, refStr);
             PageFaultResult opt  = Optimal.algorithm(capacity, refStr);
 
-            taResults.append(String.format("Run %d:\n", i));
-            taResults.append(String.format("FIFO: faults=%d, rate=%.2f%%, EAT=%.4f ms\n",
-                    fifo.faults, fifo.rate * 100, fifo.eat));
-            taResults.append(String.format("LRU : faults=%d, rate=%.2f%%, EAT=%.4f ms\n",
-                    lru.faults,  lru.rate  * 100, lru.eat));
-            taResults.append(String.format("OPT : faults=%d, rate=%.2f%%, EAT=%.4f ms\n\n",
-                    opt.faults,  opt.rate  * 100, opt.eat));
+            // add rows for each algorithm
+            tableModel.addRow(new Object[]{i, "FIFO", fifo.faults,
+                    String.format("%.2f", fifo.rate * 100), String.format("%.4f", fifo.eat)});
+            tableModel.addRow(new Object[]{i, "LRU", lru.faults,
+                    String.format("%.2f", lru.rate * 100), String.format("%.4f", lru.eat)});
+            tableModel.addRow(new Object[]{i, "OPT", opt.faults,
+                    String.format("%.2f", opt.rate * 100), String.format("%.4f", opt.eat)});
         }
     }
 
@@ -82,5 +90,7 @@ public class PageReplacementUI extends JFrame {
         return seq;
     }
 
-
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(PageReplacementUI::new);
+    }
 }

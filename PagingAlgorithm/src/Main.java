@@ -6,7 +6,7 @@ public class Main {
     public static void main(String[] args){
 
         SwingUtilities.invokeLater(PageReplacementUI::new);
-        
+
 
 //        Scanner sc = new Scanner(System.in);
 //        System.out.print("frame의 용량을 입력하세요 : ");
@@ -26,7 +26,6 @@ public class Main {
 //        FIFO.algorithm(frameCapacity, refStr);
 //        Optimal.algorithm(frameCapacity, refStr);
 //        LRU.algorithm(frameCapacity, refStr);
-//
 //        sc.close();
     }
 }
