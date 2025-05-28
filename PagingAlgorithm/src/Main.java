@@ -7,7 +7,6 @@ public class Main {
 
         SwingUtilities.invokeLater(PageReplacementUI::new);
 
-
 //        Scanner sc = new Scanner(System.in);
 //        System.out.print("frame의 용량을 입력하세요 : ");
 //        int frameCapacity = sc.nextInt(); // 프레임의 용량

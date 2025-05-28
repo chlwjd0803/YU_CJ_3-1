@@ -12,7 +12,6 @@ public class PageReplacementUI extends JFrame {
     private DefaultTableModel tableModel;
     private JTabbedPane tabbedPane;
 
-    // Chart panels
     private BarChartPanel faultBar;
     private BarChartPanel eatBar;
     private PieChartPanel faultPie;
@@ -23,7 +22,6 @@ public class PageReplacementUI extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
-        // Input panel
         JPanel input = new JPanel(new GridLayout(4, 2, 5, 5));
         input.setBorder(BorderFactory.createTitledBorder("파라미터"));
         input.add(new JLabel("프레임 크기 :")); tfCapacity = new JTextField("10"); input.add(tfCapacity);
@@ -32,14 +30,12 @@ public class PageReplacementUI extends JFrame {
         input.add(new JLabel("시행 횟수:")); spRuns = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1)); input.add(spRuns);
         add(input, BorderLayout.NORTH);
 
-        // Table setup
         String[] cols = {"시행", "알고리즘", "Fault", "비율(%)", "EAT(ms)"};
         tableModel = new DefaultTableModel(cols, 0) { @Override public boolean isCellEditable(int r, int c) { return false; } };
         table = new JTable(tableModel);
         table.setFillsViewportHeight(true);
         table.setShowGrid(false);
         table.setIntercellSpacing(new Dimension(0, 0));
-        // Zebra striping per run group
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable t, Object val,
@@ -55,11 +51,9 @@ public class PageReplacementUI extends JFrame {
         });
         table.setRowHeight(24);
         table.getTableHeader().setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
-        // Progress bar renderer for Rate(%)
         table.getColumn("비율(%)").setCellRenderer(new ProgressBarRenderer(0, 100));
         JScrollPane tblPane = new JScrollPane(table);
 
-        // Charts setup
         faultBar = new BarChartPanel("평균 Page Faults");
         eatBar   = new BarChartPanel("평균 EAT (ms)");
         faultPie = new PieChartPanel("Fault 분포도");
@@ -70,14 +64,12 @@ public class PageReplacementUI extends JFrame {
         chartGrid.add(eatBar);
         chartGrid.add(stackedBar);
 
-        // Tabs
         tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("Results", tblPane);
-        tabbedPane.addTab("Charts", chartGrid);
+        tabbedPane.addTab("결과", tblPane);
+        tabbedPane.addTab("차트", chartGrid);
         add(tabbedPane, BorderLayout.CENTER);
 
-        // Run button
-        btnRun = new JButton("Run Simulation");
+        btnRun = new JButton("시뮬레이션 실행");
         btnRun.addActionListener(e -> runSimulation());
         JPanel south = new JPanel(); south.add(btnRun);
         add(south, BorderLayout.SOUTH);
@@ -126,7 +118,6 @@ public class PageReplacementUI extends JFrame {
                 rm.get(nm).add(r.rate);
             }
         }
-        // compute averages
         Map<String, Double> avgF = new LinkedHashMap<>();
         Map<String, Double> avgE = new LinkedHashMap<>();
         Map<String, Double> avgR = new LinkedHashMap<>();
@@ -149,7 +140,6 @@ public class PageReplacementUI extends JFrame {
         return s;
     }
 
-    // Renderer for progress bar in table
     static class ProgressBarRenderer extends JProgressBar implements TableCellRenderer {
         public ProgressBarRenderer(int min, int max) { super(min, max); setStringPainted(true); }
         @Override public Component getTableCellRendererComponent(JTable table, Object value,
@@ -159,7 +149,6 @@ public class PageReplacementUI extends JFrame {
         }
     }
 
-    // Java2D Bar Chart panel
     static class BarChartPanel extends JPanel {
         private String title; private Map<String,Double> data = Collections.emptyMap();
         public BarChartPanel(String t) { title = t; setPreferredSize(new Dimension(300,200)); }
@@ -180,7 +169,6 @@ public class PageReplacementUI extends JFrame {
         }
     }
 
-    // Java2D Pie Chart panel
     static class PieChartPanel extends JPanel {
         private String title; private Map<String,Double> data = Collections.emptyMap();
         private Color[] cols={Color.RED,Color.GREEN,Color.BLUE,Color.ORANGE,Color.MAGENTA};
@@ -199,7 +187,6 @@ public class PageReplacementUI extends JFrame {
                 g2.setColor(Color.BLACK);String txt=String.format("%s: %.1f",e.getKey(),e.getValue());g2.drawString(txt,lx+15,ly+i*15+10);i++;}}
     }
 
-    // Java2D Stacked Bar Chart panel
     static class StackedBarChartPanel extends JPanel {
         private String title; private Map<String,Double> faultRates = Collections.emptyMap();
         public StackedBarChartPanel(String t) { title = t; setPreferredSize(new Dimension(300,200)); }
@@ -215,14 +202,11 @@ public class PageReplacementUI extends JFrame {
                 double fr = e.getValue(); double hr = 100 - fr;
                 int fh = (int)((fr/100)*(h-2*pad-lp));
                 int hh = (int)((hr/100)*(h-2*pad-lp));
-                int yBase = h-pad; // bottom
-                // Fault segment (blue)
+                int yBase = h-pad;
                 g2.setColor(Color.BLUE);
                 g2.fillRect(x, yBase-fh, bw-10, fh);
-                // Hit segment (green)
                 g2.setColor(Color.GREEN);
                 g2.fillRect(x, yBase-fh-hh, bw-10, hh);
-                // Labels
                 g2.setColor(Color.BLACK);
                 String lbl = e.getKey(); int lw=g2.getFontMetrics().stringWidth(lbl);
                 g2.drawString(lbl, x+(bw-10-lw)/2, h-pad+15);
@@ -232,7 +216,6 @@ public class PageReplacementUI extends JFrame {
                 g2.drawString(txtH, x+(bw-10-thw)/2, yBase-fh-hh-5);
                 x += bw;
             }
-            // Axes
             g2.setColor(Color.BLACK);
             g2.drawLine(pad,h-pad,w-pad,h-pad);
             g2.drawLine(pad,pad,pad,h-pad);
