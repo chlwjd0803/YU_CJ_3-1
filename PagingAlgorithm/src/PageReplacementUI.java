@@ -92,7 +92,7 @@ public class PageReplacementUI extends JFrame {
         Map<String, List<Integer>> fm = new LinkedHashMap<>();
         Map<String, List<Double>> em = new LinkedHashMap<>();
         Map<String, List<Double>> rm = new LinkedHashMap<>();
-        for (String a : Arrays.asList("FIFO","LRU","OPT")) {
+        for (String a : Arrays.asList("FIFO","LRU","OPT","OPTLRU")) {
             fm.put(a, new ArrayList<>());
             em.put(a, new ArrayList<>());
             rm.put(a, new ArrayList<>());
@@ -103,8 +103,9 @@ public class PageReplacementUI extends JFrame {
             PageFaultResult r1 = FIFO.algorithm(cap, ref);
             PageFaultResult r2 = LRU.algorithm(cap, ref);
             PageFaultResult r3 = Optimal.algorithm(cap, ref);
-            PageFaultResult[] rs = {r1, r2, r3};
-            String[] names = {"FIFO", "LRU", "OPT"};
+            PageFaultResult r4 = OptiLRU.algorithm(cap, ref);
+            PageFaultResult[] rs = {r1, r2, r3, r4};
+            String[] names = {"FIFO", "LRU", "OPT", "OPTLRU"};
             for (int j = 0; j < 3; j++) {
                 PageFaultResult r = rs[j];
                 String nm = names[j];
