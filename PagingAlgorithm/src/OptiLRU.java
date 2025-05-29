@@ -24,21 +24,15 @@ public class OptiLRU {
                 continue; // 있으므로 패스
             }
             if(curCapacity >= frameCapacity){ // 없는데 용량이 가득찼을경우
-//                int[] oldPages = new int[frame.size()/4];
-                HashSet<Integer> oldPages = new HashSet<>(); // 가져올 페이지 수는 1/4
-                for(int j=0; j<frame.size()/4; j++){
-//                    oldPages[j] = recent.removeFirst();
-                    oldPages.add(recent.removeFirst());
-                }
-                // old Page들을 들고옴
-
                 far.clear(); // 거리 초기화
                 Iterator<Integer> iter = recent.iterator();
                 int recIndex = 0;
                 for(int j=i+1; j<refStr.length; j++) { // j-i는 거리
-                    Integer value = iter.next(); // 이거 수정해야할듯
-                    if (far.get(value) == null)
+                    Integer value = iter.next(); // 이거 수정해야할듯, 이상함
+                    if (value.equals(frame.get(j)) && far.get(value) == null){
                         far.put(refStr[j], j - i); //거리를 저장
+                        recIndex++;
+                    }
                     if(recIndex>frame.size()/4 - 1) break;
                 }
                 farIndex = 0; // 일단 0번째로 초기화
