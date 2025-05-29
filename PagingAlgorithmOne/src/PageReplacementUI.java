@@ -1,77 +1,167 @@
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.*;
+import java.util.List;
 
 public class PageReplacementUI extends JFrame implements ActionListener {
     private JTextField refField;
     private JTextField frameField;
     private JComboBox<String> algorithmCombo;
     private JButton simulateButton;
-    private JTextArea resultArea;
+    private JPanel visualPanel;
+    private PieChartPanel chartPanel;
 
     public PageReplacementUI() {
-        super("Page Replacement Simulator");
+        super("페이지 교체정책 시뮬레이터");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10, 10));
 
-        JPanel controlPanel = new JPanel(new GridLayout(0, 2, 5, 5));
-
-        // 참조열 입력
-        controlPanel.add(new JLabel("Reference String (comma-separated):"));
-        refField = new JTextField();
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        controlPanel.add(new JLabel("Reference String:"));
+        refField = new JTextField(20);
         controlPanel.add(refField);
-
-        // 프레임 수 입력
-        controlPanel.add(new JLabel("Frame Capacity:"));
-        frameField = new JTextField();
+        controlPanel.add(new JLabel("프레임 개수:"));
+        frameField = new JTextField(3);
         controlPanel.add(frameField);
-
-        // 알고리즘 선택
-        controlPanel.add(new JLabel("Algorithm:"));
+        controlPanel.add(new JLabel("알고리즘:"));
         algorithmCombo = new JComboBox<>(new String[]{"FIFO", "LRU", "Optimal"});
         controlPanel.add(algorithmCombo);
-
-        // 시뮬레이션 실행 버튼
-        simulateButton = new JButton("Simulate");
+        simulateButton = new JButton("실행");
         simulateButton.addActionListener(this);
         controlPanel.add(simulateButton);
-        controlPanel.add(new JLabel());  // placeholder
-
         add(controlPanel, BorderLayout.NORTH);
 
-        // 결과 출력 영역
-        resultArea = new JTextArea(15, 50);
-        resultArea.setEditable(false);
-        add(new JScrollPane(resultArea), BorderLayout.CENTER);
+        visualPanel = new JPanel();
+        visualPanel.setLayout(new BoxLayout(visualPanel, BoxLayout.Y_AXIS));
+        add(new JScrollPane(visualPanel), BorderLayout.CENTER);
 
-        pack();
+        chartPanel = new PieChartPanel();
+        add(chartPanel, BorderLayout.EAST);
+
+        setSize(1000, 600);
         setLocationRelativeTo(null);
         setVisible(true);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        resultArea.setText("");
+        visualPanel.removeAll();
         String refText = refField.getText().trim();
         String algo = (String) algorithmCombo.getSelectedItem();
         if (refText.isEmpty() || frameField.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter reference string and frame capacity.",
+            JOptionPane.showMessageDialog(this, "모두 입력을 완료해주세요.",
                     "Input Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        String[] refStr = refText.split("\\s*,\\s*");
+        int[] refs;
+        try {
+            refs = Arrays.stream(refText.split("\\s*,\\s*")).mapToInt(Integer::parseInt).toArray();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "콤마 구분해서 입력하셔야 합니다",
+                    "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         int capacity;
         try {
             capacity = Integer.parseInt(frameField.getText().trim());
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Frame capacity must be an integer.",
+            JOptionPane.showMessageDialog(this, "프레임 개수는 정수여야 합니다.",
                     "Input Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // 선택된 알고리즘에 따라 시뮬레이션 실행
-        PageFaultResult.runWithStates(refStr, capacity, algo, resultArea);
+        // 요약 계산
+        PageFaultResult summary;
+        switch (algo) {
+            case "LRU":
+                summary = LRU.algorithm(capacity, refs);
+                break;
+            case "Optimal":
+                summary = Optimal.algorithm(capacity, refs);
+                break;
+            default:
+                summary = FIFO.algorithm(capacity, refs);
+        }
+        int faults = summary.faults;
+        int hits = refs.length - faults;
+        chartPanel.setData(hits, faults);
+
+        // 시각적 단계별 표시
+        List<Integer> frame = new ArrayList<>();
+        Deque<Integer> recent = new LinkedList<>();
+        Set<Integer> exist = new HashSet<>();
+
+        for (int i = 0; i < refs.length; i++) {
+            int page = refs[i];
+            boolean isHit = exist.contains(page);
+            Integer evicted = null;
+
+            if (!isHit) {
+                if (frame.size() >= capacity) {
+                    if ("FIFO".equals(algo)) {
+                        evicted = frame.remove(0);
+                    } else if ("LRU".equals(algo)) {
+                        evicted = recent.pollFirst();
+                        frame.remove(evicted);
+                    } else { // Optimal
+                        int farthest = -1, ev = frame.get(0);
+                        for (int p : frame) {
+                            int next = refs.length;
+                            for (int j = i + 1; j < refs.length; j++) {
+                                if (refs[j] == p) {
+                                    next = j;
+                                    break;
+                                }
+                            }
+                            if (next > farthest) {
+                                farthest = next;
+                                ev = p;
+                            }
+                        }
+                        evicted = ev;
+                        frame.remove(evicted);
+                    }
+                    exist.remove(evicted);
+                }
+                frame.add(page);
+                exist.add(page);
+                if ("LRU".equals(algo)) {
+                    recent.addLast(page);
+                }
+            } else if ("LRU".equals(algo)) {
+                recent.remove(page);
+                recent.addLast(page);
+            }
+
+            // Draw current step
+            JPanel step = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+            step.setBorder(BorderFactory.createTitledBorder("단계 " + (i + 1) + (isHit ? " (Hit)" : " (Fault)")));
+            for (int slot = 0; slot < capacity; slot++) {
+                JLabel cell = new JLabel();
+                cell.setPreferredSize(new Dimension(40, 40));
+                cell.setHorizontalAlignment(SwingConstants.CENTER);
+                Color borderColor = (evicted != null && slot < frame.size() && frame.get(slot) == evicted)
+                        ? Color.RED : Color.BLACK;
+                int thickness = (evicted != null && slot < frame.size() && frame.get(slot) == evicted)
+                        ? 2 : 1;
+                cell.setBorder(new LineBorder(borderColor, thickness));
+                if (slot < frame.size()) {
+                    int val = frame.get(slot);
+                    cell.setText(String.valueOf(val));
+                    if (!isHit && val == page) {
+                        cell.setBackground(Color.YELLOW);
+                        cell.setOpaque(true);
+                    }
+                }
+                step.add(cell);
+            }
+            visualPanel.add(step);
+        }
+
+        visualPanel.revalidate();
+        visualPanel.repaint();
     }
 
     public static void main(String[] args) {
