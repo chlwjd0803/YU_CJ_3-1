@@ -8,33 +8,20 @@ import java.util.*;
 import java.util.List;
 import javax.imageio.ImageIO;
 
-/**
- *  Memory Policy Simulator – **direct Java port** of the original C# WinForms
- *  program you provided.  The algorithms, control flow, and even method names
- *  are kept 1‑to‑1 so reviewers can diff the files and see they are logical
- *  equivalents written in another language.
- *
- *  ▸ Policies: FIFO, LRU, Optimal, OptiLRU (hybrid)  
- *  ▸ Swing UI fully localized to Korean while preserving technical terms
- *    (Hit / Page Fault).  
- *  ▸ Lightweight AWT/Swing only – if you prefer a modern look, apply a
- *    FlatLaf theme (`FlatLightLaf.setup()`) or move to JavaFX w/ CSS styling.
- */
 public class MemoryPolicySimulator {
     public static void main(String[] args) {
-        /*  FlatLaf (optional modern theme)
-        try { com.formdev.flatlaf.FlatLightLaf.setup(); } catch(Exception ignored){}
-        */
+        // ★ FlatLaf 적용 시 주석 해제
+        // com.formdev.flatlaf.FlatLightLaf.setup();
         SwingUtilities.invokeLater(MainFrame::new);
     }
 
     /* ─────────────────────────────  MODEL  ───────────────────────────── */
     public static final class Page {
         public enum Status { HIT, PAGE_FAULT, MIGRATION }
-        public final int loc;                 // 1‑based 위치 (1 = 최상단 프레임)
-        public final char cur;                // 현재 참조 페이지 문자
+        public final int loc;                 // 1‑based frame 위치 (1 = 왼쪽 첫 칸)
+        public final char cur;                // 현재 참조 페이지
         public final Status status;           // Hit / Page_Fault / Migration
-        public final List<Character> snapshot;// 교체 후 프레임 상태 스냅샷 (상단→하단)
+        public final List<Character> snapshot;// 교체 후 프레임 상태 스냅샷 (왼→오른 순)
         Page(int loc,char cur,Status st,List<Character> snap){ this.loc=loc; this.cur=cur; this.status=st; this.snapshot=snap; }
     }
 
@@ -53,7 +40,7 @@ public class MemoryPolicySimulator {
             Page.Status st; int loc;
             if(isHit){
                 st = Page.Status.HIT; hit++;
-                if(isLRU(policy)){ recent.remove(cur); recent.addLast(cur); }
+                if(isLRU(policy)){ recent.remove(cur); recent.addLast(cur);}
                 loc=indexOf(frame,cur)+1;
             }else{
                 if(frame.size()>=cap){
@@ -81,9 +68,7 @@ public class MemoryPolicySimulator {
         private char optlruVictim(char[] ref,int idx){
             List<Character> old=new ArrayList<>(); Iterator<Character> it=recent.iterator(); for(int i=0;i<recent.size()/2&&it.hasNext();i++) old.add(it.next());
             Map<Character,Integer> dist=new HashMap<>(); int collected=0;
-            for(int j=idx+1;j<ref.length&&collected<old.size();j++){
-                char p=ref[j]; if(old.contains(p)&&!dist.containsKey(p)){ dist.put(p,j-idx); collected++; }
-            }
+            for(int j=idx+1;j<ref.length&&collected<old.size();j++){ char p=ref[j]; if(old.contains(p)&&!dist.containsKey(p)){ dist.put(p,j-idx); collected++; } }
             char vic='?'; for(char p:old){ if(!dist.containsKey(p)){ vic=p; break; } if(vic=='?'||dist.get(p)>dist.get(vic)) vic=p; }
             return vic=='?'?frame.peekFirst():vic;
         }
@@ -98,7 +83,7 @@ public class MemoryPolicySimulator {
         private final TimelinePanel timeline=new TimelinePanel();
         private final PiePanel pie=new PiePanel();
         MainFrame(){
-            super("메모리 페이지 교체 시뮬레이터 (C# → Java)");
+            super("메모리 페이지 교체 시뮬레이터 (샘플코드 JAVA 변환)");
             setDefaultCloseOperation(EXIT_ON_CLOSE);
             setLayout(new BorderLayout(8,8));
             add(buildControls(),BorderLayout.NORTH);
@@ -130,34 +115,41 @@ public class MemoryPolicySimulator {
         }
     }
 
-    /* ───────────── 타임라인: 모든 페이지 문자 시각화 ───────────── */
+    /* ───────────── 타임라인: 시간 ↓, 프레임 → ───────────── */
     private static final class TimelinePanel extends JPanel{
         private BufferedImage buf=new BufferedImage(2048,2048,BufferedImage.TYPE_INT_ARGB);
         TimelinePanel(){ setPreferredSize(new Dimension(900,600)); setBorder(new EmptyBorder(5,5,5,5)); }
         void render(List<Page> hist,int cap){
             Graphics2D g=buf.createGraphics(); g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setColor(Color.BLACK); g.fillRect(0,0,buf.getWidth(),buf.getHeight());
-            int cell=30,gap=5;
-            for(int i=0;i<hist.size();i++){
-                Page pg=hist.get(i);
-                drawCell(g,i,0,cell,gap,new Color(230,230,230),Color.BLACK,String.valueOf(pg.cur));
-                for(int y=1;y<=cap;y++){
-                    String ch=(y<=pg.snapshot.size())?String.valueOf(pg.snapshot.get(y-1)):null;
-                    boolean hi=(y==pg.loc);
-                    Color fill=hi?switch(pg.status){case HIT->new Color(0,200,0,200);case PAGE_FAULT->new Color(220,0,0,200);default->new Color(150,0,150,200);} : new Color(245,245,245);
-                    Color textCol=hi?Color.WHITE:Color.BLACK;
-                    drawCell(g,i,y,cell,gap,fill,textCol,ch);
+            g.setColor(Color.WHITE); g.fillRect(0,0,buf.getWidth(),buf.getHeight());
+            int cell=30, gap=5;
+            // ── 상단 헤더: 프레임 번호 1..cap ──
+            for(int f=1; f<=cap; f++){
+                drawCell(g,f,0,cell,gap,new Color(200,200,200),Color.BLACK,String.valueOf(f));
+            }
+            // ── 각 시간 행 ──
+            for(int t=0; t<hist.size(); t++){
+                Page pg=hist.get(t);
+                int row=t+1;
+                // 좌측 헤더: 현재 참조 페이지 문자
+                drawCell(g,0,row,cell,gap,new Color(230,230,230),Color.BLACK,String.valueOf(pg.cur));
+                for(int f=1; f<=cap; f++){
+                    String ch=(f<=pg.snapshot.size())?String.valueOf(pg.snapshot.get(f-1)):"";
+                    boolean hi=(f==pg.loc);
+                    Color fill=hi?switch(pg.status){ case HIT->new Color(0,200,0,200); case PAGE_FAULT->new Color(220,0,0,200); default->new Color(150,0,150,200);} : new Color(245,245,245);
+                    Color text=hi?Color.WHITE:Color.BLACK;
+                    drawCell(g,f,row,cell,gap,fill,text,ch);
                 }
             }
             g.dispose();
-            setPreferredSize(new Dimension(Math.max(900,hist.size()*(cell+gap)),Math.max(600,(cap+2)*cell)));
+            int width=(cap+1)*(cell+gap); int height=(hist.size()+1)*(cell+gap);
+            setPreferredSize(new Dimension(Math.max(900,width),Math.max(600,height)));
             revalidate(); repaint();
         }
-        private void drawCell(Graphics2D g,int col,int row,int c,int gap,Color fill,Color text,String txt){ int x=col*(c+gap),y=row*c; g.setColor(fill); g.fillRect(x,y,c,c); g.setColor(Color.GRAY); g.drawRect(x,y,c,c); if(txt!=null){ g.setColor(text); g.drawString(txt,x+c*0.3f,y+c*0.7f);} }
+        private void drawCell(Graphics2D g,int col,int row,int c,int gap,Color fill,Color txtCol,String txt){ int x=col*(c+gap), y=row*(c+gap); g.setColor(fill); g.fillRect(x,y,c,c); g.setColor(Color.GRAY); g.drawRect(x,y,c,c); if(txt!=null&&!txt.isEmpty()){ g.setColor(txtCol); g.drawString(txt,x+c*0.3f,y+c*0.7f);} }
         @Override protected void paintComponent(Graphics g){ super.paintComponent(g); g.drawImage(buf,0,0,null);}
         void exportPNG(Component parent){
-            JFileChooser fc=new JFileChooser();
-            fc.setSelectedFile(new File("timeline.png"));
+            JFileChooser fc=new JFileChooser(); fc.setSelectedFile(new File("timeline.png"));
             if(fc.showSaveDialog(parent)==JFileChooser.APPROVE_OPTION){
                 try{ ImageIO.write(buf,"png",fc.getSelectedFile()); }catch(IOException ex){ ex.printStackTrace(); }
             }
@@ -166,8 +158,7 @@ public class MemoryPolicySimulator {
 
     /* ──────────────────────── 파이 차트 + 범례 ─────────────────────── */
     private static final class PiePanel extends JPanel{
-        int hit,fault;
-        PiePanel(){ setPreferredSize(new Dimension(280,280)); setBorder(new EmptyBorder(10,10,10,10)); }
+        int hit,fault; PiePanel(){ setPreferredSize(new Dimension(280,280)); setBorder(new EmptyBorder(10,10,10,10)); }
         void set(int h,int f){ hit=h; fault=f; repaint(); }
         @Override protected void paintComponent(Graphics g){
             super.paintComponent(g); if(hit+fault==0) return;
@@ -176,12 +167,12 @@ public class MemoryPolicySimulator {
             double angHit=360.0*hit/(hit+fault);
             g2.setColor(Color.GREEN); g2.fillArc(cx,cy,d,d,0,(int)angHit);
             g2.setColor(Color.RED);   g2.fillArc(cx,cy,d,d,(int)angHit,(int)(360-angHit));
-            // ── 범례 아래쪽 ──
+            // 범례 (아래)
             int lx=cx; int ly=cy+d+20;
             g2.setColor(Color.GREEN); g2.fillRect(lx,ly,15,15); g2.setColor(Color.BLACK); g2.drawRect(lx,ly,15,15); g2.drawString("Hit", lx+20, ly+12);
             ly+=20;
             g2.setColor(Color.RED); g2.fillRect(lx,ly,15,15); g2.setColor(Color.BLACK); g2.drawRect(lx,ly,15,15); g2.drawString("Fault", lx+20, ly+12);
-            // ── 수치 표시 ──
+            // 수치
             ly+=30;
             g2.drawString("Hit: "+hit, lx, ly);
             g2.drawString("Fault: "+fault, lx, ly+15);
