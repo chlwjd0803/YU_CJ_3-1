@@ -27,26 +27,39 @@ public class OptiLRU {
                 far.clear(); // 거리 초기화
                 Iterator<Integer> iter = recent.iterator();
                 int recIndex = 0;
-                for(int j=i+1; j<refStr.length; j++) { // j-i는 거리
+                for(int j=i+1; j<refStr.length && iter.hasNext(); j++) { // j-i는 거리
                     Integer value = iter.next(); // 이거 수정해야할듯
                     // value는 어짜피 안에 존재하는 값으로 이루어짐
                     if (far.get(value) == null){
-                        far.put(refStr[j], j - i); //거리를 저장
+                        far.put(value, j - i); //거리를 저장
                         recIndex++;
                     }
-                    if(recIndex>frame.size()/4 - 1) break; // 오래된 1/4 만 가져와서 비교
+                    if(recIndex >= frame.size()/4) break; // 오래된 1/4 만 가져와서 비교
                 }
-                farIndex = 0; // 일단 0번째로 초기화
-                for(int j=0; j<frame.size(); j++){
-                    if(far.get(frame.get(j)) == null){ // 대상이 이후에 계속 존재하지 않으면 그냥 지움
-                        farIndex = j;
-                        break;
-                    }
-                    if(far.get(frame.get(j)) > far.get(frame.get(farIndex)))
-                        farIndex = j; // 가장 먼 거리를 가진 index 찾아 넣기
+                int farpage = -1; // 일단 0번째로 초기화
+
+                iter = recent.iterator();
+                while(iter.hasNext() && !far.isEmpty()){
+                    Integer value = iter.next();
+                    if(farpage == -1) farpage = value; // 처음값이면 그냥 넣기
+                    if(far.get(value) == null) break; // null 방지를 위해 조건문을 나눔
+                    if(far.get(value) > far.get(farpage)) farpage = value;
                 }
 
-                exist.remove(frame.remove(farIndex)); // 삭제
+                if(farpage == -1){ // 모든 페이지가 참조되지 않을때
+                    exist.remove(frame.remove()); //gk....
+                }
+
+//                for(int j=0; j<frame.size(); j++){
+//                    if(far.get(frame.get(j)) == null){ // 대상이 이후에 계속 존재하지 않으면 그냥 지움
+//                        farIndex = j;
+//                        break;
+//                    }
+//                    if(far.get(frame.get(j)) > far.get(frame.get(farIndex)))
+//                        farIndex = j; // 가장 먼 거리를 가진 index 찾아 넣기
+//                }
+//
+//                exist.remove(frame.remove(farIndex)); // 삭제
                 curCapacity--; // 용량 감소
             }
             frame.add(refStr[i]);

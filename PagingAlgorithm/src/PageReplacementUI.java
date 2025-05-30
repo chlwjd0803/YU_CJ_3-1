@@ -106,7 +106,7 @@ public class PageReplacementUI extends JFrame {
             PageFaultResult r4 = OptiLRU.algorithm(cap, ref);
             PageFaultResult[] rs = {r1, r2, r3, r4};
             String[] names = {"FIFO", "LRU", "OPT", "OPTLRU"};
-            for (int j = 0; j < 3; j++) {
+            for (int j = 0; j < 4; j++) {
                 PageFaultResult r = rs[j];
                 String nm = names[j];
                 tableModel.addRow(new Object[]{

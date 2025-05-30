@@ -26,7 +26,7 @@ public class PageReplacementUI extends JFrame implements ActionListener {
         frameField = new JTextField(3);
         controlPanel.add(frameField);
         controlPanel.add(new JLabel("알고리즘:"));
-        algorithmCombo = new JComboBox<>(new String[]{"FIFO", "LRU", "Optimal"});
+        algorithmCombo = new JComboBox<>(new String[]{"FIFO", "LRU", "Optimal", "OptiLRU"});
         controlPanel.add(algorithmCombo);
         simulateButton = new JButton("실행");
         simulateButton.addActionListener(this);
@@ -73,17 +73,13 @@ public class PageReplacementUI extends JFrame implements ActionListener {
         }
 
         // 요약 계산
-        PageFaultResult summary;
-        switch (algo) {
-            case "LRU":
-                summary = LRU.algorithm(capacity, refs);
-                break;
-            case "Optimal":
-                summary = Optimal.algorithm(capacity, refs);
-                break;
-            default:
-                summary = FIFO.algorithm(capacity, refs);
-        }
+        PageFaultResult summary = switch (algo) {
+            case "FIFO" -> FIFO.algorithm(capacity, refs);
+            case "LRU" -> LRU.algorithm(capacity, refs);
+            case "Optimal" -> Optimal.algorithm(capacity, refs);
+            case "OptiLRU" -> OptiLRU.algorithm(capacity, refs);
+            default -> throw new IllegalArgumentException("알고리즘 선택이 잘못됨");
+        };
         int faults = summary.faults;
         int hits = refs.length - faults;
         chartPanel.setData(hits, faults);
@@ -162,9 +158,5 @@ public class PageReplacementUI extends JFrame implements ActionListener {
 
         visualPanel.revalidate();
         visualPanel.repaint();
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(PageReplacementUI::new);
     }
 }
