@@ -20,7 +20,7 @@ public class PageReplacementUI extends JFrame implements ActionListener {
 
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         controlPanel.add(new JLabel("Reference String:"));
-        refField = new JTextField(20);
+        refField = new JTextField("2, 3, 4, 3, 4, 3, 5, 5, 2, 2, 3, 1", 20);
         controlPanel.add(refField);
         controlPanel.add(new JLabel("프레임 개수:"));
         frameField = new JTextField(3);
