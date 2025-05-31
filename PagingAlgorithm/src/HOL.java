@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class OptiLRU {
+public class HOL {
     private static final double MEMORY_ACCESS = 0.0002;
     private static final double PAGE_FAULT_OVERHEAD = 8;
 
@@ -44,7 +44,7 @@ public class OptiLRU {
                 farpage = -1; // 없을때의 값
 
                 iter = oldPages.iterator(); // 오래된 페이지 순서대로 iterator
-                while(iter.hasNext()){ // 이미 비었으면 그냥 넘어가는거 아닌가 싶네
+                while(iter.hasNext()){
                     Integer page = iter.next();
                     if(farpage == -1) farpage = page; // 처음값이면 그냥 넣기
                     if(far.get(page) == null){ // 이후에 참조하지 않으므로

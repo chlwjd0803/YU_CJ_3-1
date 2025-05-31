@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="PageAlgorithmSample:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/PageAlgorithmSample_jar</output-path>
+    <root id="archive" name="PageAlgorithmSample.jar">
+      <element id="module-output" name="PageAlgorithmSample" />
+    </root>
+  </artifact>
+</component>
